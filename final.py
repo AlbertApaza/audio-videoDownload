@@ -3,6 +3,15 @@ from tkinter import filedialog, messagebox
 import yt_dlp
 import os
 import threading
+import sys
+
+def get_ffmpeg_path():
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS 
+    else:
+        base_path = os.path.dirname(__file__)
+    
+    return os.path.join(base_path, "ffmpeg", "ffmpeg.exe")
 
 def progress_hook(d):
     if d['status'] == 'downloading':
@@ -12,6 +21,7 @@ def progress_hook(d):
     elif d['status'] == 'finished':
         status_label.config(text="Descarga completada")
 
+# Hilo de descarga
 def download_content():
     threading.Thread(target=download_thread, daemon=True).start()
 
@@ -32,6 +42,7 @@ def download_thread():
         'outtmpl': os.path.join(folder, '%(title)s.%(ext)s'),
         'progress_hooks': [progress_hook],
         'writethumbnail': True,
+        'ffmpeg_location': get_ffmpeg_path(),
         'postprocessors': [
             {'key': 'FFmpegMetadata'},
             {'key': 'EmbedThumbnail'}
@@ -59,12 +70,12 @@ def download_thread():
     except Exception as e:
         messagebox.showerror("Error", f"Hubo un problema: {str(e)}")
 
-# Carpeta donde se guardara
+# Carpeta donde se guardará
 def choose_folder():
     folder_selected = filedialog.askdirectory()
     folder_path.set(folder_selected)
 
-# UI UI UI UI 
+# Interfaz Gráfica (UI)
 root = tk.Tk()
 root.title("YouTube Downloader")
 root.geometry("500x350")
@@ -75,7 +86,7 @@ button_font = ("Arial", 10, "bold")
 button_bg = "#007BFF"
 button_fg = "white"
 
-# UCampo URL
+# Campo URL
 tk.Label(root, text="Enlace de YouTube:", font=label_font, bg="#f0f0f0").pack(pady=5)
 url_entry = tk.Entry(root, width=50)
 url_entry.pack(pady=5)
@@ -89,7 +100,7 @@ tk.Radiobutton(root, text="Audio", variable=format_var, value="Audio", bg="#f0f0
 folder_path = tk.StringVar()
 tk.Button(root, text="Seleccionar carpeta", command=choose_folder, font=button_font, bg=button_bg, fg=button_fg).pack(pady=5)
 
-# estado 
+# Estado
 status_label = tk.Label(root, text="", font=label_font, bg="#f0f0f0")
 status_label.pack(pady=5)
 
